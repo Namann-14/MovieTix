@@ -1,6 +1,5 @@
 package com.movietix.movie.controller;
 
-import com.movietix.movie.dto.MovieRequest;
 import com.movietix.movie.dto.MovieResponse;
 import com.movietix.movie.service.MovieService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
