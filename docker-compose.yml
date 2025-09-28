@@ -1,0 +1,247 @@
+services:
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: movietix-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-api-gateway
+    networks:
+      - movietix-network
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+
+  # MySQL Databases
+  mysql-user:
+    image: mysql:8.0
+    container_name: mysql-user
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_DATABASE: user_service_db
+      MYSQL_USER: user_service
+      MYSQL_PASSWORD: userpassword
+    ports:
+      - "3316:3306"
+    volumes:
+      - mysql_user_data:/var/lib/mysql
+    networks:
+      - movietix-network
+
+  mysql-movie:
+    image: mysql:8.0
+    container_name: mysql-movie
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_DATABASE: movie_service_db
+      MYSQL_USER: movie_service
+      MYSQL_PASSWORD: moviepassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_movie_data:/var/lib/mysql
+    networks:
+      - movietix-network
+
+  mysql-theater:
+    image: mysql:8.0
+    container_name: mysql-theater
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_DATABASE: theater_service_db
+      MYSQL_USER: theater_service
+      MYSQL_PASSWORD: theaterpassword
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_theater_data:/var/lib/mysql
+    networks:
+      - movietix-network
+
+  mysql-showtime:
+    image: mysql:8.0
+    container_name: mysql-showtime
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_DATABASE: showtime_service_db
+      MYSQL_USER: showtime_service
+      MYSQL_PASSWORD: showtimepassword
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql_showtime_data:/var/lib/mysql
+    networks:
+      - movietix-network
+
+  mysql-booking:
+    image: mysql:8.0
+    container_name: mysql-booking
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_DATABASE: booking_service_db
+      MYSQL_USER: booking_service
+      MYSQL_PASSWORD: bookingpassword
+    ports:
+      - "3310:3306"
+    volumes:
+      - mysql_booking_data:/var/lib/mysql
+    networks:
+      - movietix-network
+
+  # Backend Services
+  eureka-server:
+    build:
+      context: ./backend/eureka-server
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - movietix-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  config-server:
+    build:
+      context: ./backend/config-server
+      dockerfile: Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      - eureka-server
+    networks:
+      - movietix-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysql-user
+      - eureka-server
+      - config-server
+    networks:
+      - movietix-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+
+  movie-service:
+    build:
+      context: ./backend/movie-service
+      dockerfile: Dockerfile
+    container_name: movie-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql-movie
+      - eureka-server
+      - config-server
+    networks:
+      - movietix-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+
+  theater-service:
+    build:
+      context: ./backend/theater-service
+      dockerfile: Dockerfile
+    container_name: theater-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mysql-theater
+      - eureka-server
+      - config-server
+    networks:
+      - movietix-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+
+  showtime-service:
+    build:
+      context: ./backend/showtime-service
+      dockerfile: Dockerfile
+    container_name: showtime-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - mysql-showtime
+      - eureka-server
+      - config-server
+      - movie-service
+      - theater-service
+    networks:
+      - movietix-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+
+  booking-service:
+    build:
+      context: ./backend/booking-service
+      dockerfile: Dockerfile
+    container_name: booking-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mysql-booking
+      - eureka-server
+      - config-server
+      - user-service
+      - showtime-service
+    networks:
+      - movietix-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+
+  backend-api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: backend-api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+      - config-server
+      - user-service
+      - movie-service
+      - theater-service
+      - showtime-service
+      - booking-service
+    networks:
+      - movietix-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+
+volumes:
+  mysql_user_data:
+  mysql_movie_data:
+  mysql_theater_data:
+  mysql_showtime_data:
+  mysql_booking_data:
+
+networks:
+  movietix-network:
+    driver: bridge
