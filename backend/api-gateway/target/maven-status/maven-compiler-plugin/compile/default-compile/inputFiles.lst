@@ -1,0 +1,3 @@
+E:\movietix\backend\api-gateway\src\main\java\com\movietix\gateway\ApiGatewayApplication.java
+E:\movietix\backend\api-gateway\src\main\java\com\movietix\gateway\filter\AuthenticationFilter.java
+E:\movietix\backend\api-gateway\src\main\java\com\movietix\gateway\service\JwtService.java

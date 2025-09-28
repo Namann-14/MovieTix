@@ -1,0 +1,15 @@
+com\movietix\movie\controller\AdminMovieController.class
+com\movietix\movie\controller\MovieController.class
+com\movietix\movie\exception\ErrorResponse.class
+com\movietix\movie\dto\MovieResponse$MovieResponseBuilder.class
+com\movietix\movie\dto\MovieRequest$MovieRequestBuilder.class
+com\movietix\movie\exception\MovieNotFoundException.class
+com\movietix\movie\dto\MovieRequest.class
+com\movietix\movie\exception\GlobalExceptionHandler.class
+com\movietix\movie\dto\MovieResponse.class
+com\movietix\movie\config\JpaConfig.class
+com\movietix\movie\entity\Movie.class
+com\movietix\movie\service\MovieService.class
+com\movietix\movie\MovieServiceApplication.class
+com\movietix\movie\repository\MovieRepository.class
+com\movietix\movie\entity\Movie$MovieBuilder.class

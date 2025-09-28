@@ -1,0 +1,4 @@
+com\movietix\gateway\filter\AuthenticationFilter.class
+com\movietix\gateway\ApiGatewayApplication.class
+com\movietix\gateway\filter\AuthenticationFilter$Config.class
+com\movietix\gateway\service\JwtService.class

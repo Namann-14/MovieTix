@@ -1,6 +1,6 @@
 import type { User, AuthResponse, LoginCredentials, RegisterData } from "./types"
 
-const API_BASE_URL = "http://localhost:8080"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080"
 
 export class AuthService {
   private static TOKEN_KEY = "movie_ticket_jwt"
@@ -81,21 +81,59 @@ export class AuthService {
     if (!token) return null
 
     try {
-      // Since the backend doesn't have a /me endpoint, we'll decode the JWT
-      // or create a default user. For now, we'll return a default user.
-      // In a real implementation, you might want to add a /me endpoint to your backend
-      // or decode the JWT token to get user information
-      
-      // For now, return a default user structure
-      // You should implement proper JWT decoding or add a /me endpoint to your backend
-      return {
-        id: 1, // This should be decoded from JWT
-        name: "User", // This should be decoded from JWT
-        email: "user@example.com", // This should be decoded from JWT
-        role: "ROLE_CUSTOMER" // This should be decoded from JWT
+      // Try to get user profile from the backend API
+      const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const userData = await response.json()
+        return {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role
+        }
+      } else if (response.status === 401) {
+        // Token is invalid, remove it
+        this.removeToken()
+        return null
+      } else {
+        // If profile endpoint doesn't exist, decode JWT token manually
+        // This is a fallback approach
+        const payload = this.decodeJWT(token)
+        if (payload) {
+          return {
+            id: payload.sub ? parseInt(payload.sub) : 1,
+            name: payload.name || "User",
+            email: payload.email || "user@example.com",
+            role: payload.role || "ROLE_CUSTOMER"
+          }
+        }
+        return null
       }
     } catch (error) {
+      console.error("Error getting current user:", error)
       this.removeToken()
+      return null
+    }
+  }
+
+  private static decodeJWT(token: string): any {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
+      
+      return JSON.parse(jsonPayload)
+    } catch (error) {
+      console.error("Error decoding JWT:", error)
       return null
     }
   }

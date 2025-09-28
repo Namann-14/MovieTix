@@ -1,0 +1,146 @@
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: "optional:configserver:http://localhost:8888"
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # User Service Routes
+        - id: user-service-auth
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
+        
+        - id: user-service-profile
+          uri: lb://user-service
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+        
+        - id: user-service-admin
+          uri: lb://user-service
+          predicates:
+            - Path=/api/admin/users/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+        
+        # Movie Service Routes
+        - id: movie-service-public
+          uri: lb://movie-service
+          predicates:
+            - Path=/api/movies/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+        
+        - id: movie-service-admin
+          uri: lb://movie-service
+          predicates:
+            - Path=/api/admin/movies/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+        
+        # Theater Service Routes
+        - id: theater-service-admin
+          uri: lb://theater-service
+          predicates:
+            - Path=/api/admin/theaters/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+        
+        # Showtime Service Routes
+        - id: showtime-service-public
+          uri: lb://showtime-service
+          predicates:
+            - Path=/api/showtimes/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+        
+        - id: showtime-service-admin
+          uri: lb://showtime-service
+          predicates:
+            - Path=/api/admin/showtimes/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+        
+        # Booking Service Routes
+        - id: booking-service-public
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/bookings/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+        
+        - id: booking-service-admin
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/admin/bookings/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+      
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+
+jwt:
+  secret: myVerySecretKeyForJWTTokenGenerationThatShouldBeLongEnough
+
+logging:
+  level:
+    com.movietix.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/

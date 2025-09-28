@@ -1,0 +1,12 @@
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\config\JpaConfig.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\controller\AdminMovieController.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\controller\MovieController.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\dto\MovieRequest.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\dto\MovieResponse.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\entity\Movie.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\exception\ErrorResponse.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\exception\GlobalExceptionHandler.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\exception\MovieNotFoundException.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\MovieServiceApplication.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\repository\MovieRepository.java
+E:\movietix\backend\movie-service\src\main\java\com\movietix\movie\service\MovieService.java
