@@ -4,7 +4,11 @@ import type React from "react"
 
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { AuthLoading } from "./loading"
+import { Button } from "./ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
+import { Shield, User } from "lucide-react"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -14,31 +18,68 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        router.push("/login")
+        setRedirecting(true)
+        router.replace("/login")
         return
       }
 
       if (requireAdmin && user.role !== "ROLE_ADMIN") {
-        router.push("/home")
+        setRedirecting(true)
+        router.replace("/browse")
         return
       }
     }
   }, [user, loading, requireAdmin, router])
 
-  if (loading) {
+  if (loading || redirecting) {
+    return <AuthLoading />
+  }
+
+  if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader className="text-center">
+            <User className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+            <CardTitle>Authentication Required</CardTitle>
+            <CardDescription>
+              Please log in to access this page
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.replace("/login")} className="w-full">
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  if (!user || (requireAdmin && user.role !== "ROLE_ADMIN")) {
-    return null
+  if (requireAdmin && user.role !== "ROLE_ADMIN") {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader className="text-center">
+            <Shield className="h-12 w-12 text-destructive mx-auto mb-2" />
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>
+              You don't have permission to access this page. Admin privileges required.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.replace("/browse")} className="w-full">
+              Browse Movies
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return <>{children}</>

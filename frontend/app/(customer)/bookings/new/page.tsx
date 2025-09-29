@@ -6,7 +6,6 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { useCreateBooking } from "@/lib/hooks"
-import { ProtectedRoute } from "@/components/protected-route"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,6 +16,7 @@ import { ApiClient } from "@/lib/api"
 import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, Users, Ticket } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
+import { ProtectedRoute } from "@/components/protected-route"
 import type { Showtime } from "@/lib/types"
 
 export default function NewBookingPage() {
@@ -43,7 +43,7 @@ export default function NewBookingPage() {
 
   useEffect(() => {
     if (!showtimeId) {
-      router.push("/home")
+      router.push("/browse")
     }
   }, [showtimeId, router])
 
@@ -106,15 +106,35 @@ export default function NewBookingPage() {
   }
 
   if (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const isServiceUnavailable = errorMessage.includes('503') || errorMessage.includes('Service Unavailable')
+    
     return (
       <ProtectedRoute>
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-destructive mb-4">Showtime Not Found</h1>
-            <p className="text-muted-foreground mb-6">The selected showtime could not be found.</p>
-            <Link href="/home">
-              <Button>Back to Movies</Button>
-            </Link>
+            <h1 className="text-2xl font-bold text-destructive mb-4">
+              {isServiceUnavailable ? 'Service Temporarily Unavailable' : 'Showtime Not Found'}
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              {isServiceUnavailable 
+                ? 'The booking service is currently unavailable. Please try again in a few moments.' 
+                : 'The selected showtime could not be found.'}
+            </p>
+            <div className="space-y-2">
+              {isServiceUnavailable && (
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  variant="outline" 
+                  className="mr-2"
+                >
+                  Try Again
+                </Button>
+              )}
+              <Link href="/browse">
+                <Button>Back to Movies</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </ProtectedRoute>
@@ -146,7 +166,7 @@ export default function NewBookingPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Showtime Not Found</h1>
-            <Link href="/home">
+            <Link href="/browse">
               <Button>Back to Movies</Button>
             </Link>
           </div>

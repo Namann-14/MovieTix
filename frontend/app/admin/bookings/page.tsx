@@ -36,14 +36,14 @@ export default function AdminBookingsPage() {
     },
     {
       id: 3,
-      customerName: "Mike Johnson",
-      customerEmail: "mike@example.com",
-      movie: "Top Gun: Maverick",
-      theater: "Theater 1",
-      showtime: "2025-09-15 18:00", 
+      customerName: "Nishant Bhalla",
+      customerEmail: "nishantbhalla32@gmail.com",
+      movie: "demon",
+      theater: "new theater",
+      showtime: "2025-10-02 18:00", 
       seats: 1,
       totalPrice: 12.99,
-      status: "cancelled",
+      status: "confirmed",
       bookingDate: "2025-09-13 10:30"
     }
   ]

@@ -32,7 +32,8 @@ export default function LoginPage() {
         title: "Welcome back!",
         description: "You have been successfully logged in.",
       })
-      router.push("/home")
+      
+      // Redirect will be handled by AuthMiddleware
     } catch (error) {
       toast({
         title: "Login failed",

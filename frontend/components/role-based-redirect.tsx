@@ -23,7 +23,7 @@ export function RoleBasedRedirect({
 
     // If user is not authenticated, redirect to login
     if (error || !user) {
-      router.push('/login')
+      router.replace('/login')
       return
     }
 
@@ -31,15 +31,15 @@ export function RoleBasedRedirect({
     if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
       // Redirect admin users to admin dashboard
       if (user.role === 'ROLE_ADMIN') {
-        router.push('/admin')
+        router.replace('/admin')
       } 
-      // Redirect regular users to customer dashboard
+      // Redirect regular users to browse page
       else if (user.role === 'ROLE_CUSTOMER') {
-        router.push('/home')
+        router.replace('/browse')
       }
       // Fallback redirect
       else if (redirectPath) {
-        router.push(redirectPath)
+        router.replace(redirectPath)
       }
       return
     }
@@ -47,9 +47,9 @@ export function RoleBasedRedirect({
     // Auto-redirect based on role if no specific route restrictions
     if (allowedRoles.length === 0) {
       if (user.role === 'ROLE_ADMIN') {
-        router.push('/admin')
+        router.replace('/admin')
       } else if (user.role === 'ROLE_CUSTOMER') {
-        router.push('/home')
+        router.replace('/browse')
       }
     }
   }, [user, isLoading, error, allowedRoles, redirectPath, router])

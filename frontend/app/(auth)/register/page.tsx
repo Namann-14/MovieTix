@@ -33,7 +33,8 @@ export default function RegisterPage() {
         title: "Account created!",
         description: "Welcome to CinemaHub. You can now start booking tickets.",
       })
-      router.push("/home")
+      
+      // Redirect will be handled by AuthMiddleware
     } catch (error) {
       toast({
         title: "Registration failed",

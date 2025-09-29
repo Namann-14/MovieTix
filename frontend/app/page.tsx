@@ -1,5 +1,9 @@
 ﻿"use client"
 
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,6 +51,34 @@ const cardHover = {
 }
 
 export default function HomePage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  // Redirect authenticated users to their appropriate dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      if (user.role === "ROLE_ADMIN") {
+        router.replace("/admin")
+      } else if (user.role === "ROLE_CUSTOMER") {
+        router.replace("/browse")
+      }
+    }
+  }, [user, loading, router])
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  // Show home page only for unauthenticated users
+  if (user) {
+    return null // Component will redirect via useEffect
+  }
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}

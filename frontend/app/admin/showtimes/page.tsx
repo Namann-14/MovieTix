@@ -83,12 +83,35 @@ export default function AdminShowtimesPage() {
     }
     
     try {
-      await createShowtimeMutation.mutateAsync(formData)
+      // Find the selected movie and theater to get their names
+      const selectedMovie = movies?.find(m => m.id === formData.movieId)
+      const selectedTheater = theaters?.find(t => t.id === formData.theaterId)
+      
+      if (!selectedMovie) {
+        toast.error("Please select a valid movie")
+        return
+      }
+      
+      if (!selectedTheater) {
+        toast.error("Please select a valid theater")
+        return
+      }
+
+      await createShowtimeMutation.mutateAsync({
+        ...formData,
+        movieTitle: selectedMovie.title,
+        theaterName: selectedTheater.name,
+      })
       toast.success("Showtime created successfully")
       setIsCreateDialogOpen(false)
       resetForm()
     } catch (error) {
-      toast.error("Failed to create showtime")
+      console.error("Showtime creation error:", error)
+      if (error instanceof Error && error.message.includes("404")) {
+        toast.error("Showtime service is temporarily unavailable. Please try again later.")
+      } else {
+        toast.error(error instanceof Error ? error.message : "Failed to create showtime")
+      }
     }
   }
 
@@ -100,12 +123,36 @@ export default function AdminShowtimesPage() {
     }
     
     try {
-      await updateShowtimeMutation.mutateAsync({ id: editingShowtime.id, ...formData })
+      // Find the selected movie and theater to get their names
+      const selectedMovie = movies?.find(m => m.id === formData.movieId)
+      const selectedTheater = theaters?.find(t => t.id === formData.theaterId)
+      
+      if (!selectedMovie) {
+        toast.error("Please select a valid movie")
+        return
+      }
+      
+      if (!selectedTheater) {
+        toast.error("Please select a valid theater")
+        return
+      }
+
+      await updateShowtimeMutation.mutateAsync({ 
+        id: editingShowtime.id, 
+        ...formData,
+        movieTitle: selectedMovie.title,
+        theaterName: selectedTheater.name,
+      })
       toast.success("Showtime updated successfully")
       setEditingShowtime(null)
       resetForm()
     } catch (error) {
-      toast.error("Failed to update showtime")
+      console.error("Showtime update error:", error)
+      if (error instanceof Error && error.message.includes("404")) {
+        toast.error("Showtime service is temporarily unavailable. Please try again later.")
+      } else {
+        toast.error(error instanceof Error ? error.message : "Failed to update showtime")
+      }
     }
   }
 
@@ -114,7 +161,12 @@ export default function AdminShowtimesPage() {
       await deleteShowtimeMutation.mutateAsync(id)
       toast.success("Showtime deleted successfully")
     } catch (error) {
-      toast.error("Failed to delete showtime")
+      console.error("Showtime deletion error:", error)
+      if (error instanceof Error && error.message.includes("404")) {
+        toast.error("Showtime service is temporarily unavailable. Please try again later.")
+      } else {
+        toast.error(error instanceof Error ? error.message : "Failed to delete showtime")
+      }
     }
   }
 
@@ -190,11 +242,17 @@ export default function AdminShowtimesPage() {
                       <SelectValue placeholder="Select a movie" />
                     </SelectTrigger>
                     <SelectContent>
-                      {movies?.map((movie) => (
-                        <SelectItem key={movie.id} value={movie.id.toString()}>
-                          {movie.title} ({movie.genre})
+                      {!movies || movies.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          No movies available - Add movies first
                         </SelectItem>
-                      ))}
+                      ) : (
+                        movies.map((movie) => (
+                          <SelectItem key={movie.id} value={movie.id.toString()}>
+                            {movie.title} ({movie.genre})
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -208,11 +266,17 @@ export default function AdminShowtimesPage() {
                       <SelectValue placeholder="Select a theater" />
                     </SelectTrigger>
                     <SelectContent>
-                      {theaters?.map((theater) => (
-                        <SelectItem key={theater.id} value={theater.id.toString()}>
-                          {theater.name} ({theater.seatingCapacity} seats)
+                      {!theaters || theaters.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          No theaters available - Add theaters first
                         </SelectItem>
-                      ))}
+                      ) : (
+                        theaters.map((theater) => (
+                          <SelectItem key={theater.id} value={theater.id.toString()}>
+                            {theater.name} ({theater.seatingCapacity} seats)
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -419,11 +483,17 @@ export default function AdminShowtimesPage() {
                     <SelectValue placeholder="Select a movie" />
                   </SelectTrigger>
                   <SelectContent>
-                    {movies?.map((movie) => (
-                      <SelectItem key={movie.id} value={movie.id.toString()}>
-                        {movie.title} ({movie.genre})
+                    {!movies || movies.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        No movies available - Add movies first
                       </SelectItem>
-                    ))}
+                    ) : (
+                      movies.map((movie) => (
+                        <SelectItem key={movie.id} value={movie.id.toString()}>
+                          {movie.title} ({movie.genre})
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -437,11 +507,17 @@ export default function AdminShowtimesPage() {
                     <SelectValue placeholder="Select a theater" />
                   </SelectTrigger>
                   <SelectContent>
-                    {theaters?.map((theater) => (
-                      <SelectItem key={theater.id} value={theater.id.toString()}>
-                        {theater.name} ({theater.seatingCapacity} seats)
+                    {!theaters || theaters.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        No theaters available - Add theaters first
                       </SelectItem>
-                    ))}
+                    ) : (
+                      theaters.map((theater) => (
+                        <SelectItem key={theater.id} value={theater.id.toString()}>
+                          {theater.name} ({theater.seatingCapacity} seats)
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>

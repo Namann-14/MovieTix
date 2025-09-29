@@ -1,7 +1,7 @@
 "use client"
 
-import { useMovie, useMovieShowtimes } from "@/lib/hooks"
-import { ProtectedRoute } from "@/components/protected-route"
+import { useMovieShowtimes } from "@/lib/hooks"
+import { useMovieWithFallback } from "@/lib/movie-fallback-hook"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,10 +11,30 @@ import { useParams } from "next/navigation"
 
 export default function MovieDetailPage() {
   const params = useParams()
-  const movieId = params.id as string
+  const movieId = Number(params.id)
 
-  const { data: movie, isLoading: movieLoading } = useMovie(movieId)
+  const { data: movie, isLoading: movieLoading, error: movieError } = useMovieWithFallback(movieId)
   const { data: showtimes, isLoading: showtimesLoading } = useMovieShowtimes(movieId)
+
+  // Add debug logging
+  console.log('Movie ID:', movieId, 'Movie:', movie, 'Loading:', movieLoading, 'Error:', movieError)
+
+  // Handle invalid movieId
+  if (isNaN(movieId) || movieId <= 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Invalid Movie ID</h1>
+          <p className="text-muted-foreground mb-4">
+            The movie ID provided is not valid.
+          </p>
+          <Link href="/browse">
+            <Button>Back to Movies</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
@@ -59,45 +79,82 @@ export default function MovieDetailPage() {
 
   if (movieLoading) {
     return (
-      <ProtectedRoute>
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/4"></div>
-            <div className="grid lg:grid-cols-3 gap-8">
-              <div className="aspect-[2/3] bg-muted rounded-lg"></div>
-              <div className="lg:col-span-2 space-y-4">
-                <div className="h-8 bg-muted rounded w-3/4"></div>
-                <div className="h-4 bg-muted rounded w-full"></div>
-                <div className="h-4 bg-muted rounded w-2/3"></div>
-              </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="aspect-[2/3] bg-muted rounded-lg"></div>
+            <div className="lg:col-span-2 space-y-4">
+              <div className="h-8 bg-muted rounded w-3/4"></div>
+              <div className="h-4 bg-muted rounded w-full"></div>
+              <div className="h-4 bg-muted rounded w-2/3"></div>
             </div>
           </div>
         </div>
-      </ProtectedRoute>
+      </div>
+    )
+  }
+
+  if (movieError) {
+    console.error('Movie error details:', movieError)
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center max-w-md mx-auto">
+          <h1 className="text-2xl font-bold mb-4">Error Loading Movie</h1>
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
+            <p className="text-sm text-destructive font-medium mb-2">
+              {movieError instanceof Error ? movieError.message : 'Failed to load movie details'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Movie ID: {movieId}
+            </p>
+            {movieError instanceof Error && movieError.message.includes('401') && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Authentication required. Please try logging in again.
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Link href="/browse">
+              <Button className="w-full">Back to Movies</Button>
+            </Link>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="w-full bg-transparent text-primary border border-primary hover:bg-primary hover:text-primary-foreground px-4 py-2 rounded-md text-sm transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!movieLoading && !movie) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Movie Not Found</h1>
+          <p className="text-muted-foreground mb-4">
+            The movie you're looking for doesn't exist or has been removed.
+          </p>
+          <Link href="/browse">
+            <Button>Back to Movies</Button>
+          </Link>
+        </div>
+      </div>
     )
   }
 
   if (!movie) {
-    return (
-      <ProtectedRoute>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Movie Not Found</h1>
-            <Link href="/home">
-              <Button>Back to Movies</Button>
-            </Link>
-          </div>
-        </div>
-      </ProtectedRoute>
-    )
+    return null // This should never happen due to the checks above, but TypeScript needs it
   }
 
   return (
-    <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
         <Link
-          href="/home"
+          href="/browse"
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -124,9 +181,6 @@ export default function MovieDetailPage() {
             <div>
               <div className="flex items-start justify-between gap-4 mb-4">
                 <h1 className="text-3xl font-bold text-balance">{movie.title}</h1>
-                <Badge variant="secondary" className="text-lg px-3 py-1">
-                  {movie.rating}
-                </Badge>
               </div>
               <p className="text-lg text-muted-foreground text-pretty">{movie.description}</p>
             </div>
@@ -135,7 +189,7 @@ export default function MovieDetailPage() {
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-muted-foreground" />
                 <span className="font-medium">Duration:</span>
-                <span>{formatDuration(movie.duration)}</span>
+                <span>{formatDuration(movie.durationInMinutes)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-muted-foreground" />
@@ -233,6 +287,5 @@ export default function MovieDetailPage() {
           )}
         </div>
       </div>
-    </ProtectedRoute>
   )
 }

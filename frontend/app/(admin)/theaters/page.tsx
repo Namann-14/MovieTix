@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useAdminTheaters, useDeleteTheater } from "@/lib/hooks"
-import { ProtectedRoute } from "@/components/protected-route"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -51,8 +50,7 @@ export default function AdminTheatersPage() {
   }
 
   return (
-    <ProtectedRoute requireAdmin>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
@@ -196,6 +194,5 @@ export default function AdminTheatersPage() {
           </CardContent>
         </Card>
       </div>
-    </ProtectedRoute>
-  )
+    )
 }

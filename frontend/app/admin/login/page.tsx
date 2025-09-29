@@ -51,7 +51,8 @@ export default function AdminLoginPage() {
       localStorage.setItem("user", JSON.stringify(data))
       
       toast.success("Admin login successful")
-      router.push("/admin")
+      // Use replace instead of push to prevent back navigation issues
+      router.replace("/admin")
     } catch (error) {
       setError(error instanceof Error ? error.message : "Login failed")
       toast.error("Admin login failed")

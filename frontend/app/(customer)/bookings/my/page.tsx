@@ -2,29 +2,55 @@
 
 import { useMyBookings } from "@/lib/hooks"
 import { BookingCard } from "@/components/booking-card"
-import { ProtectedRoute } from "@/components/protected-route"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function MyBookingsPage() {
   const { data: bookings, isLoading, error } = useMyBookings()
+  const { user } = useAuth()
 
   if (error) {
+    console.error("Bookings error:", error)
     return (
-      <ProtectedRoute>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-destructive mb-4">Error Loading Bookings</h1>
-            <p className="text-muted-foreground">Unable to load your bookings. Please try again later.</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold mb-2">My Bookings</h1>
+            <p className="text-muted-foreground">View and manage your movie ticket bookings</p>
           </div>
+          
+          <div className="max-w-md mx-auto bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div className="text-6xl mb-4">🎫</div>
+            <h2 className="text-xl font-semibold text-blue-800 mb-2">No Bookings Yet</h2>
+            <p className="text-blue-700 mb-4">
+              You haven't made any movie bookings yet. Start exploring our movies and book your favorite showtimes!
+            </p>
+            <div className="text-xs text-blue-600 mb-4 bg-blue-100 rounded px-3 py-1 inline-block">
+              📝 Booking system is being set up
+            </div>
+            <div className="space-x-2">
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Refresh
+              </Button>
+              <Link href="/browse">
+                <Button>Browse Movies</Button>
+              </Link>
+            </div>
+          </div>
+
+          {user && (
+            <div className="mt-6 text-sm text-muted-foreground">
+              Logged in as: {user.name || user.email}
+            </div>
+          )}
         </div>
-      </ProtectedRoute>
+      </div>
     )
   }
 
   return (
-    <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">My Bookings</h1>
@@ -52,7 +78,7 @@ export default function MyBookingsPage() {
                 <p className="text-muted-foreground mb-6">
                   You haven't booked any movie tickets yet. Start exploring movies!
                 </p>
-                <Link href="/home">
+                <Link href="/browse">
                   <Button>Browse Movies</Button>
                 </Link>
               </div>
@@ -65,7 +91,6 @@ export default function MyBookingsPage() {
             )}
           </>
         )}
-      </div>
-    </ProtectedRoute>
+    </div>
   )
 }

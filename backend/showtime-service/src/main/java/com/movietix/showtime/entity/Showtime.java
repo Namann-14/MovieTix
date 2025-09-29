@@ -36,6 +36,9 @@ public class Showtime {
     @Column(name = "ticket_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal ticketPrice;
 
+    @Column(name = "available_seats", nullable = false)
+    private Integer availableSeats;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -4,7 +4,7 @@ services:
     image: mysql:8.0
     container_name: mysql-user
     environment:
-      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: user_service_db
       MYSQL_USER: user_service
       MYSQL_PASSWORD: userpassword
@@ -19,7 +19,7 @@ services:
     image: mysql:8.0
     container_name: mysql-movie
     environment:
-      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: movie_service_db
       MYSQL_USER: movie_service
       MYSQL_PASSWORD: moviepassword
@@ -34,7 +34,7 @@ services:
     image: mysql:8.0
     container_name: mysql-theater
     environment:
-      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: theater_service_db
       MYSQL_USER: theater_service
       MYSQL_PASSWORD: theaterpassword
@@ -49,7 +49,7 @@ services:
     image: mysql:8.0
     container_name: mysql-showtime
     environment:
-      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: showtime_service_db
       MYSQL_USER: showtime_service
       MYSQL_PASSWORD: showtimepassword
@@ -64,7 +64,7 @@ services:
     image: mysql:8.0
     container_name: mysql-booking
     environment:
-      MYSQL_ROOT_PASSWORD: 1234567890
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: booking_service_db
       MYSQL_USER: booking_service
       MYSQL_PASSWORD: bookingpassword

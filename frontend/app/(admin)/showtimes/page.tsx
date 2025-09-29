@@ -50,7 +50,7 @@ export default function AdminShowtimesPage() {
     }
   }
 
-  const handleDeleteShowtime = async (showtimeId: string) => {
+  const handleDeleteShowtime = async (showtimeId: number) => {
     try {
       await deleteShowtimeMutation.mutateAsync(showtimeId)
       toast({
@@ -123,9 +123,12 @@ export default function AdminShowtimesPage() {
                 <h3 className="text-lg font-semibold mb-2">
                   {searchQuery ? "No showtimes found" : "No showtimes yet"}
                 </h3>
-                <p className="text-muted-foreground mb-6">
+                <p className="text-muted-foreground mb-4">
                   {searchQuery ? "Try adjusting your search terms" : "Start by scheduling your first movie showtime"}
                 </p>
+                <div className="text-xs text-blue-600 mb-6 bg-blue-100 rounded px-3 py-1 inline-block">
+                  🚧 Showtime service is being configured
+                </div>
                 {!searchQuery && (
                   <Link href="/admin/showtimes/new">
                     <Button>

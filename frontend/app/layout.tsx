@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
+import { AuthMiddleware } from "@/components/auth-middleware"
 import { Navbar } from "@/components/navbar"
 import { Toaster } from "@/components/ui/toaster"
 import { Suspense } from "react"
@@ -30,9 +31,11 @@ export default function RootLayout({
           <Suspense fallback={<div>Loading...</div>}>
             <QueryProvider>
               <AuthProvider>
-                <Navbar />
-                <main className="min-h-screen">{children}</main>
-                <Toaster />
+                <AuthMiddleware>
+                  <Navbar />
+                  <main className="min-h-screen">{children}</main>
+                  <Toaster />
+                </AuthMiddleware>
               </AuthProvider>
             </QueryProvider>
           </Suspense>

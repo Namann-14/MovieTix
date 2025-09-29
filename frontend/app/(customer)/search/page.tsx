@@ -5,15 +5,18 @@ import type React from "react"
 import { useState } from "react"
 import { useSearchMovies } from "@/lib/hooks"
 import { MovieCard } from "@/components/movie-card"
-import { ProtectedRoute } from "@/components/protected-route"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search, X } from "lucide-react"
+import { quickTestLogin } from "@/lib/quick-auth"
 
 export default function SearchPage() {
   const [query, setQuery] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
-  const { data: movies, isLoading } = useSearchMovies(searchTerm)
+  const { data: movies, isLoading, error } = useSearchMovies(searchTerm)
+
+  // Add debug logging
+  console.log('Search state:', { query, searchTerm, movies, isLoading, error })
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,8 +29,7 @@ export default function SearchPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Search Movies</h1>
@@ -60,6 +62,14 @@ export default function SearchPage() {
             <Button type="submit" disabled={!query.trim()}>
               Search
             </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={quickTestLogin}
+              className="whitespace-nowrap"
+            >
+              Quick Login
+            </Button>
           </div>
         </form>
 
@@ -70,8 +80,29 @@ export default function SearchPage() {
           </div>
         )}
 
+        {/* Error State */}
+        {error && searchTerm && (
+          <div className="text-center py-12">
+            <div className="max-w-md mx-auto">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-xl font-semibold mb-2">Search Error</h2>
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
+                <p className="text-sm text-destructive">
+                  {error instanceof Error ? error.message : 'Failed to search movies'}
+                </p>
+              </div>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90 transition-colors"
+              >
+                Retry Search
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Loading State */}
-        {isLoading && (
+        {isLoading && !error && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="animate-pulse">
@@ -87,7 +118,7 @@ export default function SearchPage() {
         )}
 
         {/* Results */}
-        {movies && searchTerm && (
+        {!isLoading && !error && movies && searchTerm && (
           <>
             {movies.length === 0 ? (
               <div className="text-center py-12">
@@ -113,7 +144,6 @@ export default function SearchPage() {
             <p className="text-muted-foreground">Enter a movie title above to find what you're looking for</p>
           </div>
         )}
-      </div>
-    </ProtectedRoute>
+    </div>
   )
 }

@@ -24,6 +24,10 @@ export class ApiClient {
         return Promise.reject(new Error("Unauthorized"))
       }
 
+      if (response.status === 503) {
+        throw new Error("Service temporarily unavailable. Please try again in a few moments.")
+      }
+
       const error = await response.text()
       throw new Error(error || `HTTP ${response.status}`)
     }
@@ -75,12 +79,49 @@ export class ApiClient {
   }
 
   static getMyBookings(): Promise<Booking[]> {
-    return this.get<Booking[]>("/api/bookings/my-bookings")
+    return this.get<Booking[]>("/api/bookings/my-bookings").catch((error) => {
+      // Fallback to different endpoint formats if the first one fails
+      console.warn("Primary bookings endpoint failed, trying alternatives:", error.message)
+      
+      // Try multiple fallback endpoints
+      const fallbackEndpoints = [
+        "/api/user/bookings",
+        "/api/bookings",
+        "/api/customer/bookings",
+        "/api/booking/user-bookings"
+      ]
+      
+      const tryFallbacks = async (endpoints: string[]): Promise<Booking[]> => {
+        if (endpoints.length === 0) {
+          // If all endpoints fail, return empty array with a warning
+          console.warn("All booking endpoints failed, returning empty array")
+          return []
+        }
+        
+        try {
+          return await this.get<Booking[]>(endpoints[0])
+        } catch (fallbackError) {
+          console.warn(`Fallback endpoint ${endpoints[0]} failed:`, fallbackError instanceof Error ? fallbackError.message : String(fallbackError))
+          return tryFallbacks(endpoints.slice(1))
+        }
+      }
+      
+      return tryFallbacks(fallbackEndpoints)
+    })
   }
 
   // User profile
   static getUserProfile(): Promise<{ id: number; name: string; email: string; role: string }> {
-    return this.get<{ id: number; name: string; email: string; role: string }>("/api/user/profile")
+    return this.get<{ id: number; name: string; email: string; role: string }>("/api/user/profile").catch((error) => {
+      // Try alternative endpoints for user profile
+      console.warn("Primary user profile endpoint failed, trying alternatives:", error.message)
+      if (error.message?.includes('403') || error.message?.includes('404')) {
+        return this.get<{ id: number; name: string; email: string; role: string }>("/api/users/profile").catch(() => {
+          return this.get<{ id: number; name: string; email: string; role: string }>("/api/auth/profile")
+        })
+      }
+      throw error
+    })
   }
 
   // Admin endpoints - Movies
@@ -123,11 +164,18 @@ export class ApiClient {
 
   // Admin endpoints - Showtimes
   static getAdminShowtimes(): Promise<Showtime[]> {
-    return this.get<Showtime[]>("/api/admin/showtimes")
+    return this.get<Showtime[]>("/api/admin/showtimes").catch((error) => {
+      console.warn("Showtime admin service unavailable:", error.message)
+      // Return empty array when service is unavailable
+      return []
+    })
   }
 
   static createShowtime(showtimeData: Omit<Showtime, "id" | "movie" | "theater">): Promise<Showtime> {
-    return this.post<Showtime>("/api/admin/showtimes", showtimeData)
+    return this.post<Showtime>("/api/admin/showtimes", showtimeData).catch((error) => {
+      console.warn("Showtime creation service unavailable:", error.message)
+      throw new Error("Showtime service is currently unavailable. Please try again later.")
+    })
   }
 
   static updateShowtime(id: number, showtimeData: Omit<Showtime, "id" | "movie" | "theater">): Promise<Showtime> {
@@ -135,7 +183,10 @@ export class ApiClient {
   }
 
   static deleteShowtime(id: number): Promise<void> {
-    return this.delete<void>(`/api/admin/showtimes/${id}`)
+    return this.delete<void>(`/api/admin/showtimes/${id}`).catch((error) => {
+      console.warn("Showtime deletion service unavailable:", error.message)
+      throw new Error("Unable to delete showtime. Service is currently unavailable.")
+    })
   }
 
   // Admin endpoints - Bookings

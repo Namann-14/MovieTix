@@ -1,4 +1,4 @@
-import { RoleBasedRedirect } from "@/components/role-based-redirect"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default function CustomerLayout({
   children,
@@ -6,8 +6,8 @@ export default function CustomerLayout({
   children: React.ReactNode
 }) {
   return (
-    <RoleBasedRedirect allowedRoles={["ROLE_CUSTOMER", "ROLE_ADMIN"]}>
+    <ProtectedRoute>
       {children}
-    </RoleBasedRedirect>
+    </ProtectedRoute>
   )
 }

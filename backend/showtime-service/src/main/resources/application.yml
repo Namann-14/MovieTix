@@ -40,6 +40,12 @@ logging:
   level:
     com.movietix.showtime: DEBUG
 
+services:
+  movie-service:
+    url: http://localhost:8083
+  theater-service:
+    url: http://localhost:8085
+
 ---
 spring:
   config:

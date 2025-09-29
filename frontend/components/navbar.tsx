@@ -29,7 +29,7 @@ export function Navbar() {
               <>
                 {isCustomer && (
                   <div className="hidden md:flex items-center space-x-4">
-                    <Link href="/dashboard">
+                    <Link href="/browse">
                       <Button variant="ghost">Movies</Button>
                     </Link>
                     <Link href="/search">
@@ -43,7 +43,7 @@ export function Navbar() {
 
                 {isAdmin && (
                   <div className="hidden md:flex items-center space-x-4">
-                    <Link href="/admin/dashboard">
+                    <Link href="/admin">
                       <Button variant="ghost">Dashboard</Button>
                     </Link>
                     <Link href="/admin/movies">
@@ -62,18 +62,18 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="flex items-center space-x-2">
                       <User className="h-4 w-4" />
-                      <span className="hidden sm:inline">{user.name}</span>
+                      <span className="hidden sm:inline">{isAdmin ? 'Admin' : user.name}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <div className="px-2 py-1.5 text-sm font-medium">{user.name}</div>
+                    <div className="px-2 py-1.5 text-sm font-medium">{isAdmin ? 'Admin' : user.name}</div>
                     <div className="px-2 py-1.5 text-xs text-muted-foreground">{user.email}</div>
                     <DropdownMenuSeparator />
 
                     {isCustomer && (
                       <>
                         <DropdownMenuItem asChild className="md:hidden">
-                          <Link href="/dashboard" className="flex items-center">
+                          <Link href="/browse" className="flex items-center">
                             <Film className="mr-2 h-4 w-4" />
                             Movies
                           </Link>
@@ -90,7 +90,7 @@ export function Navbar() {
                     {isAdmin && (
                       <>
                         <DropdownMenuItem asChild className="md:hidden">
-                          <Link href="/admin/dashboard" className="flex items-center">
+                          <Link href="/admin" className="flex items-center">
                             <Settings className="mr-2 h-4 w-4" />
                             Dashboard
                           </Link>

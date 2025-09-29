@@ -6,7 +6,6 @@ import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { useUpdateTheater } from "@/lib/hooks"
-import { ProtectedRoute } from "@/components/protected-route"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -97,19 +96,17 @@ export default function EditTheaterPage() {
 
   if (isLoading) {
     return (
-      <ProtectedRoute requireAdmin>
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/4"></div>
-            <div className="h-32 bg-muted rounded"></div>
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-10 bg-muted rounded"></div>
-              ))}
-            </div>
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="h-32 bg-muted rounded"></div>
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-10 bg-muted rounded"></div>
+            ))}
           </div>
         </div>
-      </ProtectedRoute>
+      </div>
     )
   }
 

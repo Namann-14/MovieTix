@@ -1,5 +1,7 @@
 import type { User, AuthResponse, LoginCredentials, RegisterData } from "./types"
 
+export type { User, AuthResponse, LoginCredentials, RegisterData }
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080"
 
 export class AuthService {
@@ -81,41 +83,59 @@ export class AuthService {
     if (!token) return null
 
     try {
-      // Try to get user profile from the backend API
-      const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (response.ok) {
-        const userData = await response.json()
-        return {
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          role: userData.role
-        }
-      } else if (response.status === 401) {
-        // Token is invalid, remove it
+      // Decode JWT token to get user info
+      const payload = this.decodeJWT(token)
+      if (!payload) {
+        console.warn("Invalid JWT token")
         this.removeToken()
         return null
-      } else {
-        // If profile endpoint doesn't exist, decode JWT token manually
-        // This is a fallback approach
-        const payload = this.decodeJWT(token)
-        if (payload) {
-          return {
-            id: payload.sub ? parseInt(payload.sub) : 1,
-            name: payload.name || "User",
-            email: payload.email || "user@example.com",
-            role: payload.role || "ROLE_CUSTOMER"
-          }
-        }
+      }
+
+      // Check if token is expired
+      if (payload.exp && Date.now() >= payload.exp * 1000) {
+        console.warn("JWT token expired")
+        this.removeToken()
         return null
       }
+
+      // Try to get user profile from the backend API first
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/user?token=${token}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+
+        if (response.ok) {
+          const userData = await response.json()
+          return {
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,
+            role: userData.role
+          }
+        } else if (response.status === 401) {
+          // Token is invalid, remove it
+          console.warn("Token invalid, removing...")
+          this.removeToken()
+          return null
+        } else {
+          // Other errors (403, 404, 500, etc.) - fall back to JWT data but don't remove token
+          console.warn(`API error ${response.status}, falling back to JWT data`)
+        }
+      } catch (networkError) {
+        console.warn("Network error fetching user profile, falling back to JWT data:", networkError)
+      }
+
+      // Fallback to JWT token data if backend is not available
+      const fallbackUser = {
+        id: payload.sub ? parseInt(payload.sub) : payload.userId || 1,
+        name: payload.name || payload.username || "User",
+        email: payload.email || "user@example.com",
+        role: payload.role || payload.authorities?.[0] || "ROLE_CUSTOMER"
+      }
+      return fallbackUser
     } catch (error) {
       console.error("Error getting current user:", error)
       this.removeToken()

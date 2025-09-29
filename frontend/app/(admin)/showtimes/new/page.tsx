@@ -18,8 +18,8 @@ import { useToast } from "@/hooks/use-toast"
 export default function NewShowtimePage() {
   const router = useRouter()
   const createShowtimeMutation = useCreateShowtime()
-  const { data: movies } = useAdminMovies()
-  const { data: theaters } = useAdminTheaters()
+  const { data: movies, isLoading: moviesLoading, error: moviesError } = useAdminMovies()
+  const { data: theaters, isLoading: theatersLoading, error: theatersError } = useAdminTheaters()
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
@@ -68,9 +68,33 @@ export default function NewShowtimePage() {
     }
 
     try {
+      // Find the selected movie and theater to get their names
+      const selectedMovie = movies?.find(m => m.id.toString() === formData.movieId)
+      const selectedTheater = theaters?.find(t => t.id.toString() === formData.theaterId)
+
+      if (!selectedMovie) {
+        toast({
+          title: "Invalid movie",
+          description: "Please select a valid movie.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      if (!selectedTheater) {
+        toast({
+          title: "Invalid theater",
+          description: "Please select a valid theater.",
+          variant: "destructive",
+        })
+        return
+      }
+
       await createShowtimeMutation.mutateAsync({
-        movieId: formData.movieId,
-        theaterId: formData.theaterId,
+        movieId: parseInt(formData.movieId),
+        movieTitle: selectedMovie.title,
+        theaterId: parseInt(formData.theaterId),
+        theaterName: selectedTheater.name,
         showDateTime: formData.showDateTime,
         ticketPrice: price,
         availableSeats: availableSeats || 0,
@@ -117,6 +141,13 @@ export default function NewShowtimePage() {
               Showtime Details
             </CardTitle>
             <CardDescription>Enter the showtime information below</CardDescription>
+            {(moviesError || theatersError) && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ Some services are temporarily unavailable. You may experience limited functionality.
+                </p>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -130,11 +161,17 @@ export default function NewShowtimePage() {
                       <SelectValue placeholder="Select movie" />
                     </SelectTrigger>
                     <SelectContent>
-                      {movies?.map((movie) => (
-                        <SelectItem key={movie.id} value={movie.id}>
-                          {movie.title}
-                        </SelectItem>
-                      ))}
+                      {moviesLoading ? (
+                        <SelectItem value="loading" disabled>Loading movies...</SelectItem>
+                      ) : movies && movies.length > 0 ? (
+                        movies.map((movie) => (
+                          <SelectItem key={movie.id} value={movie.id.toString()}>
+                            {movie.title}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="none" disabled>No movies available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -148,11 +185,17 @@ export default function NewShowtimePage() {
                       <SelectValue placeholder="Select theater" />
                     </SelectTrigger>
                     <SelectContent>
-                      {theaters?.map((theater) => (
-                        <SelectItem key={theater.id} value={theater.id}>
-                          {theater.name} - {theater.location}
-                        </SelectItem>
-                      ))}
+                      {theatersLoading ? (
+                        <SelectItem value="loading" disabled>Loading theaters...</SelectItem>
+                      ) : theaters && theaters.length > 0 ? (
+                        theaters.map((theater) => (
+                          <SelectItem key={theater.id} value={theater.id.toString()}>
+                            {theater.name} - {theater.location}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="none" disabled>No theaters available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
